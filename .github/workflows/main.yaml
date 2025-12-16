@@ -48,6 +48,23 @@ jobs:
           echo "Found Run ID: $LATEST_RUN"
           echo "RUN_ID=$LATEST_RUN" >> $GITHUB_ENV
 
+      - name: Download Model Artifacts
+        env:
+          MLFLOW_TRACKING_URI: ${{ secrets.DAGSHUB_URI }}
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          if [ "$RUN_ID" == "None" ]; then
+            echo "Run ID not found."
+            exit 1
+          fi
+
+          echo "Downloading artifacts from DagsHub..."
+          mlflow artifacts download --run-id $RUN_ID --artifact-path model --dst-path ./downloaded_artifacts
+
+          echo "Artifacts downloaded. Listing content:"
+          ls -R ./downloaded_artifacts
+      
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -60,16 +77,7 @@ jobs:
           MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
         run: |
-          if [ "$RUN_ID" == "None" ]; then
-            echo "Run ID not found. Skipping build."
-            exit 1
-          fi
-
-          sleep 15
-
-          echo "Building Docker Image from Model URI: runs:/$RUN_ID/model"
-          
-          mlflow artifacts list --run-id $RUN_ID
+          echo "Building Docker Image from local path"
 
           # Build image menggunakan MLflow sesuai kriteria advance
           # Ubah 'muhzidanehh/telco-project' sesuai nama repository docker hub
