@@ -9,13 +9,18 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout Code
+      - name: Run actions/checkout@v3
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Set up Python 3.12.7
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.12.7'
+      
+      - name: Check Env
+        run: |
+          python --version
+          pip --version
 
       - name: Install Dependencies
         run: |
@@ -31,7 +36,7 @@ jobs:
           # Menjalankan project menggunakan environment lokal runner
           mlflow run . --env-manager=local --experiment-name "CI_CD_Automation"
 
-      - name: Get Latest Run ID
+      - name: Get latest MLflow run_id
         env:
           MLFLOW_TRACKING_URI: ${{ secrets.DAGSHUB_URI }}
           MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
