@@ -1,7 +1,14 @@
 import pandas as pd
-import pickle
+import numpy as np
+import os
+import matplotlib.pyplot as plt
+import seaborn as sns
+import mlflow
+import mlflow.sklearn
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+mlflow.set_experiment("CI_CD_Automation")
 
 print("Memulai Training Model untuk CI/CD...")
 
@@ -16,18 +23,45 @@ except FileNotFoundError:
     print("Error: Dataset tidak ditemukan di folder ini.")
     exit(1)
 
-# 2. Training
-# Kita pakai settingan ringan agar hemat waktu CI
-rf = RandomForestClassifier(n_estimators=10, random_state=42)
-rf.fit(X_train, y_train)
+with mlflow.start_run():
+    # Hyperparameters
+    n_estimators = 20
+    max_depth = 10
+    
+    # Train model
+    rf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, random_state=42)
+    rf.fit(X_train, y_train)
+    
+    # Evaluate
+    y_pred = rf.predict(X_test)
+    acc = accuracy_score(y_test, y_pred)
+    print(f"Accuracy: {acc}")
 
-# 3. Evaluasi
-y_pred = rf.predict(X_test)
-acc = accuracy_score(y_test, y_pred)
-print(f"Model Accuracy: {acc}")
-
-# 4. Save Model (Pickle)
-with open('model.pkl', 'wb') as f:
-    pickle.dump(rf, f)
-
-print("Model berhasil disimpan sebagai model.pkl")
+    # Log parameters and metrics
+    mlflow.log_param("n_estimators", n_estimators)
+    mlflow.log_param("max_depth", max_depth)
+    mlflow.log_metric("accuracy", acc)
+    
+    # Create confusion matrix artifact
+    cm = confusion_matrix(y_test, y_pred)
+    plt.figure(figsize=(6,5))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+    plt.title('Confusion Matrix')
+    plt.ylabel('Actual')
+    plt.xlabel('Predicted')
+    
+    cm_file = "confusion_matrix.png"
+    plt.savefig(cm_file)
+    plt.close()
+    
+    # Upload artifact
+    mlflow.log_artifact(cm_file)
+    
+    # Cleanup local file
+    if os.path.exists(cm_file):
+        os.remove(cm_file)
+        
+    # Log model to MLflow
+    mlflow.sklearn.log_model(rf, "model")
+    
+    print("Run completed. Model and artifacts logged.")

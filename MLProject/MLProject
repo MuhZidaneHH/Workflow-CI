@@ -1,4 +1,4 @@
-name: TelcoChurn
+name: TelcoChurnProject
 
 conda_env: conda.yaml
 
