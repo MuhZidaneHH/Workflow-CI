@@ -65,8 +65,12 @@ jobs:
             exit 1
           fi
 
+          sleep 15
+
           echo "Building Docker Image from Model URI: runs:/$RUN_ID/model"
           
+          mlflow artifacts list --run-id $RUN_ID
+
           # Build image menggunakan MLflow sesuai kriteria advance
           # Ubah 'muhzidanehh/telco-project' sesuai nama repository docker hub
           mlflow models build-docker \
