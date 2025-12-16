@@ -31,7 +31,10 @@ with mlflow.start_run():
     # Train model
     rf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, random_state=42)
     rf.fit(X_train, y_train)
-    
+
+    # Log model to MLflow
+    mlflow.sklearn.log_model(rf, "model")
+
     # Evaluate
     y_pred = rf.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
@@ -61,7 +64,4 @@ with mlflow.start_run():
     if os.path.exists(cm_file):
         os.remove(cm_file)
         
-    # Log model to MLflow
-    mlflow.sklearn.log_model(rf, "model")
-    
     print("Run completed. Model and artifacts logged.")

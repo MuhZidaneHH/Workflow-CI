@@ -1,7 +1,9 @@
-mlflow
-scikit-learn
 pandas
 numpy
+scikit-learn
+mlflow
+dagshub
 matplotlib
 seaborn
-dagshub
+setuptools
+wheel
